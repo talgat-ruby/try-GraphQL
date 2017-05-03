@@ -1,1 +1,1 @@
-### Just trying and learning GraphQL and webpack 2
+### Just trying and learning GraphQL + webpack 2
