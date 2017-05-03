@@ -1,49 +1,31 @@
 import { GraphQLObjectType, GraphQLSchema, GraphQLString, GraphQLInt } from 'graphql';
+import fetch from 'node-fetch';
 
-const users = [
-	{
-		"_id": 1,
-		"name": "Stephanie",
-		"age": 41
-	},
-	{
-		"_id": 2,
-		"name": "Gamble",
-		"age": 31
-	},
-	{
-		"_id": 3,
-		"name": "Lucy",
-		"age": 22
-	},
-	{
-		"_id": 4,
-		"name": "Ophelia",
-		"age": 34
-	},
-	{
-		"_id": 5,
-		"name": "Mckinney",
-		"age": 24
-	},
-	{
-		"_id": 6,
-		"name": "Latonya",
-		"age": 31
-	},
-	{
-		"_id": 7,
-		"name": "Estela",
-		"age": 35
+const GLOBAL_URL = `http://localhost:3000`;
+
+
+const CompanyType = new GraphQLObjectType({
+	name: 'Company',
+	fields: {
+		id: { type: GraphQLInt },
+		name: { type: GraphQLString },
+		description: { type: GraphQLString }
 	}
-]
+});
 
 const UserType = new GraphQLObjectType({
 	name: 'User',
 	fields: {
 		id: { type: GraphQLInt },
 		name: { type: GraphQLString },
-		age: { type: GraphQLInt }
+		age: { type: GraphQLInt },
+		company: { 
+			type: CompanyType,
+			resolve({ companyId }, args) {
+				return fetch(`${GLOBAL_URL}/companies/${companyId}`)
+					.then(res => res.json());
+			}
+		}
 	}
 });
 
@@ -53,8 +35,21 @@ const RootQuery = new GraphQLObjectType({
 		user: {
 			type: UserType,
 			args: { id: { type: GraphQLInt } },
-			resolve(parenValue, args) {
-				return users.find(({ _id }) => _id === args.id);
+			resolve(parent, { id }) {
+				return fetch(`${GLOBAL_URL}/users/${id}`)
+					.then(res => res.json());
+			}
+		},
+		company: {
+			type: CompanyType,
+			args: { name: { type: GraphQLString } },
+			resolve(parent, { name }) {
+				return fetch(`${GLOBAL_URL}/companies?name=${name}`)
+					.then(res => res.json())
+					.then(json => {
+						console.log(json);
+						return json;
+					});
 			}
 		}
 	}
